@@ -5,6 +5,7 @@ import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
 import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
+import com.example.employeeservice.service.APIClient;
 import com.example.employeeservice.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -19,8 +20,12 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final ModelMapper modelMapper;
-    private final RestTemplate restTemplate;
-    private final WebClient webClient;
+    private final APIClient apiClient;
+
+//    private final RestTemplate restTemplate;
+//    private final WebClient webClient;
+
+
 
     @Override
     public EmployeeDto create(EmployeeDto employeeDto) {
@@ -29,7 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 
-    //with WebClient
+    //with SpringCloud OpenFeign
     @Override
     public APIResponseDto get(Long id) {
         Employee employee = employeeRepository.findById(id)
@@ -37,12 +42,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         EmployeeDto employeeDto = modelMapper.map(employee, EmployeeDto.class);
 
-        DepartmentDto departmentDto = webClient.get()
-                .uri("http://localhost:8080/api/v1/department/"
-                        + employee.getDepartmentId())
-                .retrieve()
-                .bodyToMono(DepartmentDto.class)
-                .block();
+        DepartmentDto departmentDto = apiClient.getDepartment(employee.getDepartmentId());
 
         APIResponseDto apiResponseDto = new APIResponseDto();
         apiResponseDto.setEmployeeDto(employeeDto);
@@ -50,6 +50,29 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return apiResponseDto;
     }
+
+
+//    //with WebClient
+//    @Override
+//    public APIResponseDto get(Long id) {
+//        Employee employee = employeeRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Not found"));
+//
+//        EmployeeDto employeeDto = modelMapper.map(employee, EmployeeDto.class);
+//
+//        DepartmentDto departmentDto = webClient.get()
+//                .uri("http://localhost:8080/api/v1/department/"
+//                        + employee.getDepartmentId())
+//                .retrieve()
+//                .bodyToMono(DepartmentDto.class)
+//                .block();
+//
+//        APIResponseDto apiResponseDto = new APIResponseDto();
+//        apiResponseDto.setEmployeeDto(employeeDto);
+//        apiResponseDto.setDepartmentDto(departmentDto);
+//
+//        return apiResponseDto;
+//    }
 
 
 //    //with REST template
